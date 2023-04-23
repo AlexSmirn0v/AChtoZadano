@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Домашние задания {{ hw[0]["grade"]["name"] }} класса</h1>
+{% if current_user.is_authenticated %}
+    <a href="/116/new" class="btn btn-secondary">Добавить дз</a>
+{% endif %}
+<div class="accordion accordion-flush">
+    {% for homework in hw %}
+    {% if homework is mapping %}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target={{ '#' + homework['sub']['token'] }} aria-expanded="false" aria-controls={{ homework['sub']['token'] }}>
+          {{ homework["sub"]["name"] }}
+        </button>
+      </h2>
+      <div id={{ homework['sub']['token'] }} class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+          {{ homework['text'] }}
+          <br>
+          {% if homework['img_links'] %}
+          {% for img_link in homework['img_links'] %}
+            <img src="{{ '/content/' + img_link }}" class="img-fluid">
+            <br>
+            <br>
+          {% endfor %}
+          {% endif %}
+          <br>
+          Опубликовал {{ homework['author_tg'] }} в {{ homework['creat_time'] }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

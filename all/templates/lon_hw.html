@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if hw is mapping %}
+<h1>Домашние задания {{ hw["grade"]["name"] }} класса</h1>
+{% else %}
+<h1>Домашние задания {{ hw[0]["grade"]["name"] }} класса</h1>
+{% endif %}
+<br>
+{% if current_user.is_authenticated %}
+    <a href="/116/new" class="btn btn-secondary">Добавить дз</a>
+{% endif %}
+    {% if hw is mapping %}
+    <h2>{{ hw["sub"]["name"] }}</h2>
+          {{ hw['text'] }}
+          <br>
+          {% if hw['img_links'] %}
+          {% for img_link in hw['img_links'] %}
+            <img src="/content/{{img_link}}">
+          {% endfor %}
+          {% endif %}
+          <br>
+          Опубликовал {{ hw['author_tg'] }} в {{ hw['creat_time'] }}
+        </div>
+  {% else %}
+    {% for homework in hw %}
+    <h2>{{ homework["sub"]["name"] }}</h2>
+    <div>
+      {{ homework['text'] }}
+      <br>
+      {% if homework['img_links'] %}
+      {% for img_link in homework['img_links'] %}
+        <img src="/content/{{img_link}}">
+      {% endfor %}
+      {% endif %}
+      <br>
+      Опубликовал {{ homework['author_tg'] }} в {{ homework['creat_time'] }}
+    </div>
+    {% endfor %}
+    {% endif %}
+{% endblock %}
