@@ -17,9 +17,8 @@ from all.api_resources import *
 from all.db_modules.db_utils import *
 from all.forms import *
 
-#print(executable, os.getcwd())
-#for file_loc in ['exp_schedule.py', 'exp_schedule_copy.py']:
-#   subprocess.Popen([executable, os.path.join(os.getcwd(), 'experiments', file_loc)])
+for file_loc in ['routine.py', 'tg_bot.py']:
+   subprocess.Popen([executable, os.path.join(os.path.dirname(__file__), 'all', file_loc)])
 
 
 app = Flask(__name__, static_url_path='', static_folder='all/static/img', template_folder='all/templates')
@@ -111,7 +110,6 @@ def admin_login():
 def new_homework():
     form = HomeworkForm()
     form.subject.choices = get_subs(int(request.cookies.get('grade')), int(request.cookies.get('group')), return_name=True)
-    print(int(request.cookies.get('group')))
     if form.validate_on_submit():
         image = []
         for file in form.images.data:

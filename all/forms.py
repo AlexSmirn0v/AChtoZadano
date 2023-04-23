@@ -27,7 +27,6 @@ class AdminLoginForm(FlaskForm):
     def validate_tg(form, field):
         if field.data[0] != '@':
             field.data = '@' + field.data
-            print('It works')
         return True
 
 class HomeworkForm(FlaskForm):

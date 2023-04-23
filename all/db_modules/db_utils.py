@@ -1,8 +1,11 @@
 import csv
+import email
+from email.message import EmailMessage
 import logging
 import os
 import queue
 import time
+import smtplib
 from datetime import datetime
 from logging.handlers import (QueueHandler, QueueListener, SMTPHandler,
                               TimedRotatingFileHandler)
@@ -19,17 +22,39 @@ if __name__ == '__main__':
     from data.subjects import Subject
     from data.timetable import Timetable
     from data.users import User
-    from other_utils.emailer import SSLSMTPHandler    
 else:
     from .data import db_session
     from .data.grades import Grade
     from .data.timetable import Timetable
     from .data.homework import Homework
     from .data.subjects import Subject
-    from .data.users import User  
-    from ..other_utils.emailer import SSLSMTPHandler     
+    from .data.users import User      
 
 import json
+
+
+class SSLSMTPHandler(SMTPHandler):
+    def emit(self, record):
+        try:
+            port = self.mailport
+            if not port:
+                port = smtplib.SMTP_PORT
+            smtp = smtplib.SMTP_SSL(self.mailhost, port)
+            msg = EmailMessage()
+            msg['From'] = self.fromaddr
+            msg['To'] = ','.join(self.toaddrs)
+            msg['Subject'] = self.getSubject(record)
+            msg['Date'] = email.utils.localtime()
+            msg.set_content(self.format(record))
+            if self.username:
+                smtp.login(self.username, self.password)
+            smtp.send_message(msg, self.fromaddr, self.toaddrs)
+            smtp.quit()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)
+
 
 dotenv.load_dotenv()
 all_dir = os.path.dirname(os.path.dirname(__file__))
@@ -190,9 +215,9 @@ def add_user(user_tg:str, grade_name:str, group:int, is_admin=False, name=None, 
     db_sess = db_session.create_session()
     if not db_sess.query(User).filter(User.tg == user_tg).all():
         grade = Grade()
-        grade.name_to_id(grade_name)
-        if not db_sess.query(Grade).filter(Grade.id == grade.id).all():
-            db_sess.add(grade)
+        check = grade.name_to_id(grade_name)
+        if not db_sess.query(Grade).filter(Grade.id == grade.id).all() or not check:
+            raise RecordNotFoundError
         user = User()
         user.tg = user_tg
     else:
@@ -238,8 +263,17 @@ def get_user(user_tg:str, password=False, to_dict=True):
     return res
 
 
-def get_subs(grade_id:int, group=0, return_name=False):
+def get_subs(grade, group=0, return_name=False, grade_name=False):
     db_sess = db_session.create_session()
+    if grade_name:
+        prot_grade = Grade()
+        check = prot_grade.name_to_id(grade)
+        if check:
+            grade_id = prot_grade.id
+        else:
+            raise RecordNotFoundError
+    else:
+        grade_id = grade
     grade = db_sess.query(Grade).filter(Grade.id == grade_id).first()
     if not grade:
         raise RecordNotFoundError
@@ -257,6 +291,26 @@ def get_subs(grade_id:int, group=0, return_name=False):
             if subject.group == 0 or subject.group == group:
                 res.append(subject.id)
     db_sess.close()
+    return res
+
+def get_grade(grade, name=True):
+    db_sess = db_session.create_session()
+    if name:
+        prot_grade = Grade()
+        check = prot_grade.name_to_id(grade)
+        if check:
+            grade_id = prot_grade.id
+        else:
+            raise RecordNotFoundError
+    else:
+        grade_id = grade
+    grade = db_sess.query(Grade).filter(Grade.id == grade_id).first()
+    if not grade:
+        raise RecordNotFoundError
+    res = {
+        "name": grade.name(),
+        "id": grade.id
+    }
     return res
     
 
@@ -313,6 +367,7 @@ if __name__ == '__main__':
     start_time = time.time()
     #add_user('@kate', '3А', 2, True, 'Катя', 'Смирнова', "why not")
     pprint(get_user('@alex010407'))
+    print(get_grade('''9"В"'''))
     pprint(get_subs(93, 2, True))
     pprint(get_all_homework(93))
     #get_all_homework(93)

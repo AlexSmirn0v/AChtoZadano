@@ -1,15 +1,12 @@
-import email
 import mimetypes
 import os
 import smtplib as smtp
 from email import encoders
-from email.message import EmailMessage
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from logging.handlers import SMTPHandler
 
 import dotenv
 
@@ -74,26 +71,3 @@ def attach_file(msg, f):
             encoders.encode_base64(file)
     file.add_header('Content-Disposition', 'attachment', filename=filename)
     msg.attach(file)
-
-
-class SSLSMTPHandler(SMTPHandler):
-    def emit(self, record):
-        try:
-            port = self.mailport
-            if not port:
-                port = smtp.SMTP_PORT
-            smtp = smtp.SMTP_SSL(self.mailhost, port)
-            msg = EmailMessage()
-            msg['From'] = self.fromaddr
-            msg['To'] = ','.join(self.toaddrs)
-            msg['Subject'] = self.getSubject(record)
-            msg['Date'] = email.utils.localtime()
-            msg.set_content(self.format(record))
-            if self.username:
-                smtp.login(self.username, self.password)
-            smtp.send_message(msg, self.fromaddr, self.toaddrs)
-            smtp.quit()
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:
-            self.handleError(record)

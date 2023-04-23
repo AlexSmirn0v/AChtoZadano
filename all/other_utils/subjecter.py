@@ -17,4 +17,5 @@ def subjects_tokens():
                 subs[sub_name_datv.lower()] = [sub_token_1, sub_token_2]
     return subs
 
-print(subjects_tokens())
+if __name__ == '__main__':
+    print(subjects_tokens())
