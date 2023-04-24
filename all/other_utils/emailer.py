@@ -1,3 +1,4 @@
+import csv
 import mimetypes
 import os
 import smtplib as smtp
@@ -12,35 +13,39 @@ import dotenv
 
 dotenv.load_dotenv()
 
+with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db_modules', 'def_data', 'prod_team.csv'), encoding='utf8') as admins:
+    a = list(csv.reader(admins, delimiter=';'))
+    prod_team = a[0]
 
-def send_email(email, subject, text, attachments=None):
+def send_email(subject, text, recipients=prod_team, attachments=None):
     login = os.getenv('YAN_LOGIN')
     password = os.getenv('YAN_PASSWORD')
-    server = 'smtp.yandex.com'
+    host = 'smtp.yandex.com'
     port = 465
+    if type(recipients) == str:
+        recipients = [recipients]
+    for email in recipients:
+        msg = MIMEMultipart()
+        msg['From'] = login
+        msg['To'] = email
+        msg['Subject'] = subject
+        body = text
+        msg.attach(MIMEText(body, 'plain'))
 
-    msg = MIMEMultipart()
-    msg['From'] = login
-    msg['To'] = email
-    msg['Subject'] = subject
+        if attachments:
+            process_attachments(msg, attachments)
 
-    body = text
-    msg.attach(MIMEText(body, 'plain'))
+        if login.endswith('gmail.com'):
+            server = smtp.SMTP(host, port)
+            server.starttls()
+        elif login.endswith('yandex.com'):
+            server = smtp.SMTP_SSL(host, port)
+        else:
+            print(login)
 
-    process_attachments(msg, attachments)
-
-    if login.endswith('gmail.com'):
-        server = smtp.SMTP(server, port)
-        server.starttls()
-    elif login.endswith('yandex.com'):
-        server = smtp.SMTP_SSL(server, port)
-    else:
-        print(login)
-    server.login(login, password)
-
-    server.send_message(msg)
-    server.quit()
-
+        server.login(login, password)
+        server.send_message(msg)
+        server.quit()
 
 def process_attachments(msg, attachments):
     for f in attachments:
@@ -71,3 +76,7 @@ def attach_file(msg, f):
             encoders.encode_base64(file)
     file.add_header('Content-Disposition', 'attachment', filename=filename)
     msg.attach(file)
+
+
+if __name__ == '__main__':
+    send_email('Проверка', "Почему бы и нет?")

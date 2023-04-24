@@ -16,7 +16,6 @@ plot_headers = {
     "homework_requested_today": "Количество запрошенных домашних заданий", 
     "alice_registered_today": "Количество пользователей, зарегистрировавшихся из Алисы"
 }
-team = open(os.path.join(os.path.dirname(__file__), 'db_modules', 'def_data', 'prod_team.csv'), 'r').read().split(';')
 
 
 def clear_archive():
@@ -51,8 +50,7 @@ def routine():
 
     json.dump(today_dict, open(os.path.join(os.path.dirname(__file__), 'dynamic', 'logs', 'variables.json'), 'w'))
     json.dump(day_stat_dict, open(os.path.join(os.path.dirname(__file__), 'dynamic', 'logs', 'day_stats.json'), 'w'))
-    for mail in team:
-        send_email(mail, 'Отчёт о работе achtozadano', '\n'.join(email_text), stat_images)
+    send_email('Отчёт о работе achtozadano', '\n'.join(email_text), attachments=stat_images)
     print('Reports are succesfully sent')
     clear_archive()
     print('Routine is succesfully completed')

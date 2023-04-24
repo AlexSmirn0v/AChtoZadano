@@ -27,8 +27,8 @@ user_parser.add_argument('password', required=False, type=str)
 
 
 class HomeworkResource(Resource):
-    def get(self, grade:int, subject, key:str):
-        if key == getenv["API_KEY"]:
+    def get(self, grade:int, subject):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             try:
                 res = jsonify(get_homework(grade, subject))
                 return res
@@ -36,8 +36,8 @@ class HomeworkResource(Resource):
                 abort(404, message="Your requested homework wasn't found")
         else:
             abort(403, "Wrong api-key")
-    def delete(self, grade:int, subject:int, key:str):
-        if key == getenv["API_KEY"]:
+    def delete(self, grade:int, subject:int):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             try:
                 delete_homework(grade, subject)
                 return jsonify({'success': 'OK'})
@@ -45,8 +45,8 @@ class HomeworkResource(Resource):
                 abort(404, message="Your requested homework wasn't found")
         else:
             abort(403, "Wrong api-key")
-    def update(self, grade:int, subject:int, key:str):
-        if key == getenv["API_KEY"]:
+    def patch(self, grade:int, subject:int):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             args = parser.parse_args()
             try:
                 add_homework(grade, subject, args['author_tg'], args['text'], args['img_links'], args['alt_text'])
@@ -60,8 +60,8 @@ class HomeworkResource(Resource):
 
         
 class HomeworkListResource(Resource):
-    def get(self, grade:int, key:str):
-        if key == getenv["API_KEY"]:
+    def get(self, grade:int):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             try:
                 return jsonify(get_all_homework(grade))
             except RecordNotFoundError:
@@ -71,8 +71,8 @@ class HomeworkListResource(Resource):
     
 
 class UserResource(Resource):
-    def get(self, user_tg, key:str):
-        if key == getenv["API_KEY"]:
+    def get(self, user_tg):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             user_tg = '@' + user_tg
             try:
                 return jsonify(get_user(user_tg))
@@ -80,8 +80,8 @@ class UserResource(Resource):
                 abort(404, message="Requested user wasn't found")
         else:
             abort(403, "Wrong api-key")
-    def delete(self, user_tg, key:str):
-        if key == getenv["API_KEY"]:
+    def delete(self, user_tg):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             user_tg = '@' + user_tg
             try:
                 delete_user(user_tg)
@@ -93,13 +93,13 @@ class UserResource(Resource):
 
 
 class UserListResource(Resource):
-    def get(self, key:str):
-        if key == getenv["API_KEY"]:
+    def get(self):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             return jsonify(get_all_users())
         else:
             abort(403, "Wrong api-key")
-    def post(self, key:str):
-        if key == getenv["API_KEY"]:
+    def post(self):
+        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
             args = user_parser.parse_args()
             try:
                 add_user(args['user_tg'], args['grade_name'], args['group'], args['is_admin'], args['name'], args['surname'], args['password'])

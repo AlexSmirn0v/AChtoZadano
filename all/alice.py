@@ -53,8 +53,7 @@ def grade(req, resp, sess_state):
 def verify_grade(req, resp, sess_state):
     if req.deep_get(['request', 'nlu', 'intents', 'yes_or_no', 'slots', 'positive', 'value']):
         sess_state['step'] = 'group'
-        reply = '''Теперь можно перейти к следующему этапу. В какой группе ты учишься? Обычно в классе их две, и вы делитесь на них на английском. 
-        Если не знаешь, ты всегда можешь уточнить у преподавателя или посмотреть в расписании и вернуться к регистрации позднее'''
+        reply = '''Теперь можно перейти к следующему этапу. В какой группе ты учишься? Обычно в классе их две, и вы делитесь на них на английском. \nЕсли не знаешь, ты всегда можешь уточнить у преподавателя или посмотреть в расписании и вернуться к регистрации позднее'''
     elif req.deep_get(['request', 'nlu', 'intents', 'yes_or_no', 'slots', 'negative', 'value']):
         sess_state['step'] = 'grade'
         reply = '''Тогда повтори ещё раз, в каком классе ты учишься. Лучше сказать это в формате: "Я учусь в таком-то классе"'''
@@ -168,6 +167,8 @@ def handle_dialog(req, resp):
         resp["response"]["text"] = '''Привет! Чтобы начать работу, скажи, в каком ты классе? К примеру: "Я учусь в 10В"'''
         sess_state['step'] = 'grade'
         resp['session_state'] = sess_state
+    elif req.deep_get(['session', 'new']) and req.deep_get(['request', 'nlu', 'intents', 'subject', 'slots', 'subject', 'value']):
+        resp["response"]["text"], resp['session_state'] = commands['work'](req, resp, sess_state)
     elif req.deep_get(['session', 'new']):
         resp["response"]["text"] = '''Привет! Какое домашнее задание ты бы хотел узнать?'''
         sess_state['step'] = 'work'

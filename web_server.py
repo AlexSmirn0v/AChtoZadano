@@ -17,7 +17,7 @@ from all.api_resources import *
 from all.db_modules.db_utils import *
 from all.forms import *
 
-for file_loc in ['routine.py', 'tg_bot.py']:
+for file_loc in ['tg_bot.py']:
    subprocess.Popen([executable, os.path.join(os.path.dirname(__file__), 'all', file_loc)])
 
 
@@ -29,10 +29,10 @@ app.register_blueprint(blueprint)
 login_manager = LoginManager()
 login_manager.init_app(app)
 api = Api(app)
-api.add_resource(HomeworkResource, '/api/116/<int:grade>/<subject>/?key=<key>')
-api.add_resource(HomeworkListResource, '/api/116/<int:grade>/?key=<key>')
-api.add_resource(UserResource, '/api/116/user/<user_tg>/?key=<key>')
-api.add_resource(UserListResource, '/api/116/users/?key=<key>')
+api.add_resource(HomeworkResource, '/api/116/<int:grade>/<subject>')
+api.add_resource(HomeworkListResource, '/api/116/<int:grade>')
+api.add_resource(UserResource, '/api/116/user/<user_tg>')
+api.add_resource(UserListResource, '/api/116/users')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -112,12 +112,14 @@ def new_homework():
     form.subject.choices = get_subs(int(request.cookies.get('grade')), int(request.cookies.get('group')), return_name=True)
     if form.validate_on_submit():
         image = []
+        print(form.images.data)
         for file in form.images.data:
-            file_name = secure_filename(uuid4().hex + '.png')
-            file.save(os.path.join('all', 'dynamic', 'img', 'actual', file_name))
-            image.append(file_name)
+            if file:
+                file_name = secure_filename(uuid4().hex + '.png')
+                file.save(os.path.join('all', 'dynamic', 'img', 'actual', file_name))
+                image.append(file_name)
         add_homework(current_user.grade_id, form.subject.data, current_user.tg, form.text.data, ';'.join(image), find_by='name')
-        return 'Good!'
+        return redirect(f'/116/{current_user.grade_id}')
     return render_template('simple_form.html', form=form)
 
 

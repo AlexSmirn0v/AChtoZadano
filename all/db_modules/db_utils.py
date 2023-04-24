@@ -10,7 +10,6 @@ from datetime import datetime
 from logging.handlers import (QueueHandler, QueueListener, SMTPHandler,
                               TimedRotatingFileHandler)
 from pprint import pprint
-from random import randint
 from threading import Thread
 
 import dotenv
@@ -62,32 +61,33 @@ path = os.path.join(all_dir, "db_modules", "db", "116.db")
 db_session.global_init(path)
 alice = 0
 
-the_logger = logging.getLogger()
-the_logger.setLevel(logging.INFO)
+if not os.getenv("DEBUG"):
+    the_logger = logging.getLogger()
+    the_logger.setLevel(logging.INFO)
 
-log_queue = queue.Queue()
-queue_handler = QueueHandler(log_queue)
+    log_queue = queue.Queue()
+    queue_handler = QueueHandler(log_queue)
 
-with open(os.path.join(os.path.dirname(__file__), 'def_data', 'prod_team.csv'), encoding='utf8') as admins:
-    a = list(csv.reader(admins, delimiter=';'))
-    prod_team = a[0]
+    with open(os.path.join(os.path.dirname(__file__), 'def_data', 'prod_team.csv'), encoding='utf8') as admins:
+        a = list(csv.reader(admins, delimiter=';'))
+        prod_team = a[0]
 
-handler = TimedRotatingFileHandler(os.path.join(all_dir, 'dynamic', 'logs', 'actions'), when='midnight', interval=1, backupCount=14, encoding='utf8')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-smtp_handler = SSLSMTPHandler(mailhost=('smtp.yandex.com', 465),
-                            subject='Проблемы в работе achtozadano',
-                            fromaddr=os.getenv('YAN_LOGIN'),
-                            toaddrs=prod_team,
-                            credentials=(os.getenv('YAN_LOGIN'), os.getenv('YAN_PASSWORD')),
-                            secure=())
+    handler = TimedRotatingFileHandler(os.path.join(all_dir, 'dynamic', 'logs', 'actions'), when='midnight', interval=1, backupCount=14, encoding='utf8')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    smtp_handler = SSLSMTPHandler(mailhost=('smtp.yandex.com', 465),
+                                subject='Проблемы в работе achtozadano',
+                                fromaddr=os.getenv('YAN_LOGIN'),
+                                toaddrs=prod_team,
+                                credentials=(os.getenv('YAN_LOGIN'), os.getenv('YAN_PASSWORD')),
+                                secure=())
 
-handler.setFormatter(formatter)
-smtp_handler.setFormatter(formatter)
-smtp_handler.setLevel(logging.WARNING)
-the_logger.addHandler(queue_handler)
+    handler.setFormatter(formatter)
+    smtp_handler.setFormatter(formatter)
+    smtp_handler.setLevel(logging.WARNING)
+    the_logger.addHandler(queue_handler)
 
-queue_listener = QueueListener(log_queue, handler, smtp_handler, respect_handler_level=True) 
-queue_listener.start()
+    queue_listener = QueueListener(log_queue, handler, smtp_handler, respect_handler_level=True) 
+    queue_listener.start()
 
 class AccessNotAllowedError(Exception):
     pass
@@ -190,6 +190,7 @@ def add_homework(grade_id:int, sub, author_tg:str, text:str=None, img_links=None
             for i, filename in enumerate(hw.img_links.split(';')):
                 os.replace(os.path.join(all_dir, 'dynamic', 'img', 'actual', filename),
                         os.path.join(all_dir, 'dynamic', 'img', 'archive', f"{hw.author_tg.lstrip('@')}-{hw.sub_token}-{i + 1}.png"))
+            hw.img_links = None
                 
         user = db_sess.query(User).filter(User.tg == author_tg).first()
         user.homework_added += 1
@@ -204,7 +205,8 @@ def add_homework(grade_id:int, sub, author_tg:str, text:str=None, img_links=None
         db_sess.commit()
         t = Thread(target=add_values, args=['homework'], daemon=False)
         t.start()
-        the_logger.info(f'Новое дз по предмету {hw.sub.name} в {hw.grade.name()} опубликовал {hw.author_tg}')
+        if not os.getenv('DEBUG'):
+            the_logger.info(f'Новое дз по предмету {hw.sub.name} в {hw.grade.name()} опубликовал {hw.author_tg}')
         db_sess.close()
     else:
         db_sess.close()
@@ -234,24 +236,28 @@ def add_user(user_tg:str, grade_name:str, group:int, is_admin=False, name=None, 
             user.set_password(password)
     db_sess.add(user)
     db_sess.commit()
-    if is_admin:
-        the_logger.info(f'Новый админ {user.name} {user.surname}({user.tg}) в {user.grade.name()} зарегистрировался')
-        t = Thread(target=add_values, args=['admin'], daemon=False)
-    elif not user.tg.startswith('alice'):
-        the_logger.info(f'Новый пользователь {user.tg} в {user.grade.name()} зарегистрировался')
-        t = Thread(target=add_values, args=['user'], daemon=False)
-    else:
-        the_logger.info(f'Новый пользователь в {user.grade.name()} зарегистрировался через сайт')
-        t = Thread(target=add_values, args=['alice'], daemon=False)
+    if not os.getenv('DEBUG'):
+        if is_admin:
+            the_logger.info(f'Новый админ {user.name} {user.surname}({user.tg}) в {user.grade.name()} зарегистрировался')
+            t = Thread(target=add_values, args=['admin'], daemon=False)
+        elif not user.tg.startswith('alice'):
+            the_logger.info(f'Новый пользователь {user.tg} в {user.grade.name()} зарегистрировался')
+            t = Thread(target=add_values, args=['user'], daemon=False)
+        else:
+            the_logger.info(f'Новый пользователь в {user.grade.name()} зарегистрировался через сайт')
+            t = Thread(target=add_values, args=['alice'], daemon=False)
+        t.start()
     db_sess.close()
-    t.start()
 
 
-def get_user(user_tg:str, password=False, to_dict=True):
+def get_user(user_tg:str, password=False, to_dict=True, return_error=True):
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(User.tg == user_tg).first()
     if not user:
-        raise RecordNotFoundError
+        if return_error:
+            raise RecordNotFoundError
+        else:
+            return False
     elif password:
         if not user.check_password(password):
             raise AccessNotAllowedError
@@ -360,6 +366,14 @@ def get_all_homework(grade:int, to_dict=True, group=0):
                 res.append(get_homework(grade, subject, find_by='id', log=False, to_dict=to_dict))
         db_sess.close()
         return res
+    
+
+def get_all_grades():
+    db_sess = db_session.create_session()
+    res = sorted([get_grade(grade.id, name=False) for grade in db_sess.query(Grade).all()],
+                 key=lambda x: x['id'])
+    db_sess.close()
+    return res
 
     
     
@@ -374,3 +388,4 @@ if __name__ == '__main__':
     #add_homework(93, 'info', '@alex010407', 'Срочное собрание всех админов в 10 кабинете, ' + str(randint(0, 300)))
     pprint(get_homework(93, 'info'))
     print("--- %s seconds ---" % (time.time() - start_time))
+    print(get_all_grades())
