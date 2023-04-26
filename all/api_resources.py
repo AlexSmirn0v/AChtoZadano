@@ -9,14 +9,12 @@ else:
 
 dotenv.load_dotenv()
 parser = reqparse.RequestParser()
-parser.add_argument('api_key', required=True, type=str)
 parser.add_argument('author_tg', required=True, type=str)
 parser.add_argument('text', required=True, type=str)
 parser.add_argument('img_links', required=True, type=list)
 parser.add_argument('alt_text', required=False, type=str)
 
 user_parser = reqparse.RequestParser()
-parser.add_argument('api_key', required=True, type=str)
 user_parser.add_argument('user_tg', required=True, type=str)
 user_parser.add_argument('grade_name', required=True, type=str)
 user_parser.add_argument('group', required=True, type=int)
@@ -27,61 +25,69 @@ user_parser.add_argument('password', required=False, type=str)
 
 
 class HomeworkResource(Resource):
-    def get(self, grade:int, subject):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+    def get(self, grade: int, subject, api_key):
+        if api_key == getenv("API_KEY"):
             try:
                 res = jsonify(get_homework(grade, subject))
                 return res
             except RecordNotFoundError:
                 abort(404, message="Your requested homework wasn't found")
         else:
-            abort(403, "Wrong api-key")
-    def delete(self, grade:int, subject:int):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+            abort(403, message="Wrong api-key")
+
+    def delete(self, grade: int, subject, api_key):
+        if api_key == getenv("API_KEY"):
             try:
                 delete_homework(grade, subject)
                 return jsonify({'success': 'OK'})
             except RecordNotFoundError:
                 abort(404, message="Your requested homework wasn't found")
         else:
-            abort(403, "Wrong api-key")
-    def patch(self, grade:int, subject:int):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+            abort(403, message="Wrong api-key")
+
+    def patch(self, grade: int, subject, api_key):
+        if api_key == getenv("API_KEY"):
             args = parser.parse_args()
             try:
-                add_homework(grade, subject, args['author_tg'], args['text'], args['img_links'], args['alt_text'])
+                add_homework(
+                    grade, subject, args['author_tg'], args['text'], args['img_links'], args['alt_text'])
                 return jsonify({'success': 'OK'})
             except RecordNotFoundError:
-                abort(404, message="The homework you wanted to edit homework wasn't found")
+                abort(
+                    404, message="The homework you wanted to edit homework wasn't found")
             except AccessNotAllowedError:
-                abort(403, message="You don't have right to add homework for this subject")
+                abort(
+                    403, message="You don't have right to add homework for this subject")
         else:
-            abort(403, "Wrong api-key")
+            abort(403, message="Wrong api-key")
 
-        
+
 class HomeworkListResource(Resource):
-    def get(self, grade:int):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+    def get(self, grade: int, api_key):
+        print(getenv("API_KEY"))
+        if api_key == getenv("API_KEY"):
+
             try:
                 return jsonify(get_all_homework(grade))
             except RecordNotFoundError:
                 abort(404, message="The requested grade wasn't found")
         else:
-            abort(403, "Wrong api-key")
-    
+            abort(403, message="Wrong api-key")
+
 
 class UserResource(Resource):
-    def get(self, user_tg):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+    def get(self, user_tg, api_key):
+        if api_key == getenv("API_KEY"):
             user_tg = '@' + user_tg
             try:
                 return jsonify(get_user(user_tg))
             except RecordNotFoundError:
                 abort(404, message="Requested user wasn't found")
         else:
-            abort(403, "Wrong api-key")
-    def delete(self, user_tg):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+            abort(403, message="Wrong api-key")
+
+    def delete(self, user_tg, api_key):
+        if api_key == getenv("API_KEY"):
             user_tg = '@' + user_tg
             try:
                 delete_user(user_tg)
@@ -89,22 +95,24 @@ class UserResource(Resource):
             except RecordNotFoundError:
                 abort(404, message="Requested user wasn't found")
         else:
-            abort(403, "Wrong api-key")
+            abort(403, message="Wrong api-key")
 
 
 class UserListResource(Resource):
-    def get(self):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+    def get(self, api_key):
+        if api_key == getenv("API_KEY"):
             return jsonify(get_all_users())
         else:
-            abort(403, "Wrong api-key")
-    def post(self):
-        if '8ba2dc0f77ff4ba7a9cbdf06d4b726c7' == getenv("API_KEY"):
+            abort(403, message="Wrong api-key")
+
+    def post(self, api_key):
+        if api_key == getenv("API_KEY"):
             args = user_parser.parse_args()
             try:
-                add_user(args['user_tg'], args['grade_name'], args['group'], args['is_admin'], args['name'], args['surname'], args['password'])
+                add_user(args['user_tg'], args['grade_name'], args['group'],
+                         args['is_admin'], args['name'], args['surname'], args['password'])
                 return jsonify({'success': 'OK'})
             except AccessNotAllowedError:
                 abort(403, message="You don't have right to add users")
         else:
-            abort(403, "Wrong api-key")
+            abort(403, message="Wrong api-key")

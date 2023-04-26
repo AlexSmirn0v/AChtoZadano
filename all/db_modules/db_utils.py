@@ -27,7 +27,7 @@ else:
     from .data.timetable import Timetable
     from .data.homework import Homework
     from .data.subjects import Subject
-    from .data.users import User      
+    from .data.users import User
 
 import json
 
@@ -72,22 +72,26 @@ if not os.getenv("DEBUG"):
         a = list(csv.reader(admins, delimiter=';'))
         prod_team = a[0]
 
-    handler = TimedRotatingFileHandler(os.path.join(all_dir, 'dynamic', 'logs', 'actions'), when='midnight', interval=1, backupCount=14, encoding='utf8')
+    handler = TimedRotatingFileHandler(os.path.join(
+        all_dir, 'dynamic', 'logs', 'actions'), when='midnight', interval=1, backupCount=14, encoding='utf8')
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     smtp_handler = SSLSMTPHandler(mailhost=('smtp.yandex.com', 465),
-                                subject='Проблемы в работе achtozadano',
-                                fromaddr=os.getenv('YAN_LOGIN'),
-                                toaddrs=prod_team,
-                                credentials=(os.getenv('YAN_LOGIN'), os.getenv('YAN_PASSWORD')),
-                                secure=())
+                                  subject='Проблемы в работе achtozadano',
+                                  fromaddr=os.getenv('YAN_LOGIN'),
+                                  toaddrs=prod_team,
+                                  credentials=(os.getenv('YAN_LOGIN'),
+                                               os.getenv('YAN_PASSWORD')),
+                                  secure=())
 
     handler.setFormatter(formatter)
     smtp_handler.setFormatter(formatter)
     smtp_handler.setLevel(logging.WARNING)
     the_logger.addHandler(queue_handler)
 
-    queue_listener = QueueListener(log_queue, handler, smtp_handler, respect_handler_level=True) 
+    queue_listener = QueueListener(
+        log_queue, handler, smtp_handler, respect_handler_level=True)
     queue_listener.start()
+
 
 class AccessNotAllowedError(Exception):
     pass
@@ -102,7 +106,8 @@ class RecordExistsError(Exception):
 
 
 def add_values(what_add):
-    variables = json.load(open(os.path.join(all_dir, 'dynamic', 'logs', 'variables.json'), encoding='utf8'))
+    variables = json.load(open(os.path.join(
+        all_dir, 'dynamic', 'logs', 'variables.json'), encoding='utf8'))
     if what_add == 'admin':
         variables['admins_registered'] += 1
         variables['admins_registered_today'] += 1
@@ -126,19 +131,23 @@ def add_values(what_add):
         alice += 1
     else:
         raise KeyError
-    json.dump(variables, open(os.path.join(all_dir, 'dynamic', 'logs', 'variables.json'), 'w', encoding='utf8'))
+    json.dump(variables, open(os.path.join(all_dir, 'dynamic',
+              'logs', 'variables.json'), 'w', encoding='utf8'))
 
 
-def get_homework(grade_id:int, sub, find_by='token', log=True, to_dict=True):
+def get_homework(grade_id: int, sub, find_by='token', log=True, to_dict=True):
     db_sess = db_session.create_session()
     if find_by == 'id':
         subject = db_sess.query(Subject).filter(Subject.id == int(sub)).first()
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub == subject).all()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub == subject).all()
     elif find_by == 'token':
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub_token == sub).all()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub_token == sub).all()
     elif find_by == 'name':
         subject = db_sess.query(Subject).filter(Subject.name == sub).first()
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub == subject).all()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub == subject).all()
     else:
         raise KeyError
     if not hw:
@@ -146,7 +155,8 @@ def get_homework(grade_id:int, sub, find_by='token', log=True, to_dict=True):
     hw_list = list()
     for homework in hw:
         if to_dict:
-            hw_dict = homework.to_dict(only=('author_tg', 'grade.id', 'grade.name', 'text', 'img_links', 'creat_time', 'sub', '-sub.grades'), datetime_format="%d.%m.%Y, %H:%M:%S")
+            hw_dict = homework.to_dict(only=('author_tg', 'grade.id', 'grade.name', 'text', 'img_links',
+                                       'creat_time', 'sub', '-sub.grades'), datetime_format="%d.%m.%Y, %H:%M:%S")
             if hw_dict['img_links']:
                 hw_dict['img_links'] = hw_dict['img_links'].split(';')
         else:
@@ -156,21 +166,28 @@ def get_homework(grade_id:int, sub, find_by='token', log=True, to_dict=True):
         hw_list = hw_list[0]
     db_sess.close()
     if log:
-        t = Thread(target=add_values, args=['homework_requested'], daemon=False)
+        t = Thread(target=add_values, args=[
+                   'homework_requested'], daemon=False)
         t.start()
     return hw_list
 
 
-def add_homework(grade_id:int, sub, author_tg:str, text:str=None, img_links=None, alt_text=None, find_by='token'):
+def add_homework(grade_id: int, sub, author_tg: str, text: str = None, img_links=None, alt_text=None, find_by='token'):
+    print(grade_id, sub, author_tg, text, img_links, alt_text)
+    if author_tg[0] != '@':
+        author_tg = '@' + author_tg
     db_sess = db_session.create_session()
     if find_by == 'id':
         subject = db_sess.query(Subject).filter(Subject.id == int(sub)).first()
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub == subject).first()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub == subject).first()
     elif find_by == 'token':
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub_token == sub).first()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub_token == sub).first()
     elif find_by == 'name':
         subject = db_sess.query(Subject).filter(Subject.name == sub).first()
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub == subject).first()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub == subject).first()
     else:
         raise KeyError
     if not hw:
@@ -178,20 +195,21 @@ def add_homework(grade_id:int, sub, author_tg:str, text:str=None, img_links=None
     author = get_user(author_tg)
     if author['is_admin'] and author['grade']['id'] == grade_id and (author['group'] == hw.sub.group or hw.sub.group == 0):
         if hw.sub_token == 'info':
-            infos = sorted(db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub_token == 'info').all(), key=lambda x: x.creat_time)
+            infos = sorted(db_sess.query(Homework).filter(
+                Homework.grade_id == grade_id, Homework.sub_token == 'info').all(), key=lambda x: x.creat_time)
             if len(infos) < 3:
                 hw = Homework()
                 hw.sub_token = 'info'
                 hw.grade_id = grade_id
             else:
                 hw = infos[0]
-        
-        if hw.img_links:
+
+        if hw.img_links and hw.img_links != 'logo.png':
             for i, filename in enumerate(hw.img_links.split(';')):
                 os.replace(os.path.join(all_dir, 'dynamic', 'img', 'actual', filename),
-                        os.path.join(all_dir, 'dynamic', 'img', 'archive', f"{hw.author_tg.lstrip('@')}-{hw.sub_token}-{i + 1}.png"))
-            hw.img_links = None
-                
+                           os.path.join(all_dir, 'dynamic', 'img', 'archive', f"{hw.author_tg.lstrip('@')}-{hw.sub_token}-{i + 1}.png"))
+        hw.img_links = None
+
         user = db_sess.query(User).filter(User.tg == author_tg).first()
         user.homework_added += 1
         hw.author_tg = author_tg
@@ -206,14 +224,15 @@ def add_homework(grade_id:int, sub, author_tg:str, text:str=None, img_links=None
         t = Thread(target=add_values, args=['homework'], daemon=False)
         t.start()
         if not os.getenv('DEBUG'):
-            the_logger.info(f'Новое дз по предмету {hw.sub.name} в {hw.grade.name()} опубликовал {hw.author_tg}')
+            the_logger.info(
+                f'Новое дз по предмету {hw.sub.name} в {hw.grade.name()} опубликовал {hw.author_tg}')
         db_sess.close()
     else:
         db_sess.close()
         raise AccessNotAllowedError
 
 
-def add_user(user_tg:str, grade_name:str, group:int, is_admin=False, name=None, surname=None, password=None):
+def add_user(user_tg: str, grade_name: str, group: int, is_admin=False, name=None, surname=None, password=None):
     db_sess = db_session.create_session()
     if not db_sess.query(User).filter(User.tg == user_tg).all():
         grade = Grade()
@@ -225,7 +244,10 @@ def add_user(user_tg:str, grade_name:str, group:int, is_admin=False, name=None, 
     else:
         db_sess.close()
         raise RecordExistsError
-    user.tg = user_tg
+    if user_tg[0] != '@':
+        user.tg = '@' + user_tg
+    else:
+        user.tg = user_tg
     user.grade_id = grade.id
     user.group = group
     if is_admin:
@@ -238,20 +260,25 @@ def add_user(user_tg:str, grade_name:str, group:int, is_admin=False, name=None, 
     db_sess.commit()
     if not os.getenv('DEBUG'):
         if is_admin:
-            the_logger.info(f'Новый админ {user.name} {user.surname}({user.tg}) в {user.grade.name()} зарегистрировался')
+            the_logger.info(
+                f'Новый админ {user.name} {user.surname}({user.tg}) в {user.grade.name()} зарегистрировался')
             t = Thread(target=add_values, args=['admin'], daemon=False)
         elif not user.tg.startswith('alice'):
-            the_logger.info(f'Новый пользователь {user.tg} в {user.grade.name()} зарегистрировался')
+            the_logger.info(
+                f'Новый пользователь {user.tg} в {user.grade.name()} зарегистрировался')
             t = Thread(target=add_values, args=['user'], daemon=False)
         else:
-            the_logger.info(f'Новый пользователь в {user.grade.name()} зарегистрировался через сайт')
+            the_logger.info(
+                f'Новый пользователь в {user.grade.name()} зарегистрировался через сайт')
             t = Thread(target=add_values, args=['alice'], daemon=False)
         t.start()
     db_sess.close()
 
 
-def get_user(user_tg:str, password=False, to_dict=True, return_error=True):
+def get_user(user_tg: str, password=False, to_dict=True, return_error=True):
     db_sess = db_session.create_session()
+    if user_tg[0] != '@':
+        user_tg = '@' + user_tg
     user = db_sess.query(User).filter(User.tg == user_tg).first()
     if not user:
         if return_error:
@@ -262,7 +289,8 @@ def get_user(user_tg:str, password=False, to_dict=True, return_error=True):
         if not user.check_password(password):
             raise AccessNotAllowedError
     if to_dict:
-        res = user.to_dict(rules=('-grade.subs', 'grade.name', '-hashed_password', '-grade_id'))
+        res = user.to_dict(rules=('-grade.subs', 'grade.name',
+                           '-hashed_password', '-grade_id'))
     else:
         res = user
     db_sess.close()
@@ -293,11 +321,13 @@ def get_subs(grade, group=0, return_name=False, grade_name=False):
     elif not return_name and group == 0:
         res = [sub.id for sub in grade.subs]
     else:
+        res = list()
         for subject in grade.subs:
             if subject.group == 0 or subject.group == group:
                 res.append(subject.id)
     db_sess.close()
     return res
+
 
 def get_grade(grade, name=True):
     db_sess = db_session.create_session()
@@ -318,31 +348,49 @@ def get_grade(grade, name=True):
         "id": grade.id
     }
     return res
-    
 
-def delete_homework(grade_id:int, sub):
+
+def delete_homework(grade_id: int, sub, text='Домашнее задание было удалено по решению администрации за нарушение правил публикации'):
     db_sess = db_session.create_session()
     try:
         subject = db_sess.query(Subject).filter(Subject.id == int(sub)).first()
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub == subject).first()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub == subject).first()
     except ValueError:
-        hw = db_sess.query(Homework).filter(Homework.grade_id == grade_id, Homework.sub_token == sub).first()
+        hw = db_sess.query(Homework).filter(
+            Homework.grade_id == grade_id, Homework.sub_token == sub).first()
     if not hw:
         raise RecordNotFoundError
-    hw.author_tg = '@alex010407'
-    hw.text = 'Домашнее задание было удалено по решению администрации за нарушение правил публикации'
+    hw.author_tg = 'superadmin'
+    hw.text = text
     hw.creat_time = datetime.now()
+    if hw.img_links and hw.img_links != 'logo.png':
+        for i, filename in enumerate(hw.img_links.split(';')):
+            os.replace(os.path.join(all_dir, 'dynamic', 'img', 'actual', filename),
+                       os.path.join(all_dir, 'dynamic', 'img', 'archive', f"{hw.author_tg.lstrip('@')}-{hw.sub_token}-{i + 1}.png"))
     hw.img_links = None
-    db_sess.close()
+    hw.img_links = 'logo.png'
+
 
 
 def delete_user(user_tg):
     db_sess = db_session.create_session()
+    if user_tg[0] != '@':
+        user_tg = '@' + user_tg
     user = db_sess.query(User).filter(User.tg == user_tg).first()
     if not user:
         raise RecordNotFoundError
+    added_hw = db_sess.query(Homework).filter(Homework.author_tg == user_tg)
+    for hw in added_hw:
+        hw.author_tg = 'superadmin'
+        hw.creat_time = datetime.now()
+        hw.img_links = 'logo.png'
+        hw.text = 'Пользователь удалил свой аккаунт на AChtoZadano или перерегистрировался'
+        time.sleep(0.0001)
+    db_sess.commit()
     db_sess.delete(user)
     db_sess.commit()
+    db_sess.close()
 
 
 def get_all_users():
@@ -352,7 +400,7 @@ def get_all_users():
     return res
 
 
-def get_all_homework(grade:int, to_dict=True, group=0):
+def get_all_homework(grade: int, to_dict=True, group=0):
     t = Thread(target=add_values, args=['homework_requested'], daemon=False)
     t.start()
     if group == 0:
@@ -363,10 +411,11 @@ def get_all_homework(grade:int, to_dict=True, group=0):
         for subject in get_subs(grade):
             homework = get_homework(grade, subject, find_by='id', log=False)
             if type(homework) == list or homework['sub']['group'] in [0, group]:
-                res.append(get_homework(grade, subject, find_by='id', log=False, to_dict=to_dict))
+                res.append(get_homework(grade, subject,
+                           find_by='id', log=False, to_dict=to_dict))
         db_sess.close()
         return res
-    
+
 
 def get_all_grades():
     db_sess = db_session.create_session()
@@ -375,17 +424,16 @@ def get_all_grades():
     db_sess.close()
     return res
 
-    
-    
+
 if __name__ == '__main__':
     start_time = time.time()
-    #add_user('@kate', '3А', 2, True, 'Катя', 'Смирнова', "why not")
+    # add_user('@kate', '3А', 2, True, 'Катя', 'Смирнова', "why not")
     pprint(get_user('@alex010407'))
     print(get_grade('''9"В"'''))
-    pprint(get_subs(93, 2, True))
+    pprint(get_subs(93, 2))
     pprint(get_all_homework(93))
-    #get_all_homework(93)
-    #add_homework(93, 'info', '@alex010407', 'Срочное собрание всех админов в 10 кабинете, ' + str(randint(0, 300)))
+    # get_all_homework(93)
+    # add_homework(93, 'info', '@alex010407', 'Срочное собрание всех админов в 10 кабинете, ' + str(randint(0, 300)))
     pprint(get_homework(93, 'info'))
     print("--- %s seconds ---" % (time.time() - start_time))
     print(get_all_grades())

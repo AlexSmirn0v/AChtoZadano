@@ -22,7 +22,7 @@ def def_values(def_sub=True, def_grades=True, def_admins=True, def_timetable=Tru
     if def_sub:
         for sub in open(all_dir + "/db_modules/def_data/subjects.txt", 'r', encoding='utf8').readlines():
             subject = Subject()
-            subject.name, subject.token = sub.rstrip().split('-')
+            subject.name, subject.token, nothing = sub.rstrip().split('-')
             if subject.name.endswith('1 группа'):
                 subject.group = 1
             elif subject.name.endswith('2 группа'):
@@ -88,10 +88,11 @@ def def_values(def_sub=True, def_grades=True, def_admins=True, def_timetable=Tru
         for grade in db_sess.query(Grade).all():
             for sub in grade.subs:
                 hw = Homework()
-                hw.author_tg = '@alex010407'
+                hw.author_tg = 'superadmin'
                 hw.grade = grade
                 hw.sub = sub
                 hw.text = 'Пока здесь ничего нет, но уже скоро твои одноклассники начнут добавлять домашние задания. Не забудьте назначить админов в классе и напомните им про собрание, которое состоится 3 сентября в 15:30'
+                hw.img_links = 'logo.png'
                 sleep(0.0001)
                 hw.creat_time = datetime.now()
                 db_sess.add(hw)

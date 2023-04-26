@@ -22,8 +22,11 @@ def work(req, resp, sess_state):
     if sub_name:
         token = subs[sub_name][group - 1]
         print(grade, token)
-        homework = get_homework(grade, token)
-        reply = f"Задано {homework['text']}"
+        try:
+            homework = get_homework(grade, token)
+            reply = f"Задано {homework['text']}"
+        except RecordNotFoundError:
+            reply = "Видимо, такого предмета в вашем классе нет"
     else:
         reply = f"Повторите, пожалуйста, я вас не поняла"
     

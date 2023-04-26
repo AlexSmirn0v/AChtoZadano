@@ -17,11 +17,13 @@ from all.api_resources import *
 from all.db_modules.db_utils import *
 from all.forms import *
 
-for file_loc in ['tg_bot.py']:
-   subprocess.Popen([executable, os.path.join(os.path.dirname(__file__), 'all', file_loc)])
+for file_loc in ['routine.py', 'tg_bot.py']:
+    subprocess.Popen([executable, os.path.join(
+        os.path.dirname(__file__), 'all', file_loc)])
 
 
-app = Flask(__name__, static_url_path='', static_folder='all/static/img', template_folder='all/templates')
+app = Flask(__name__, static_url_path='',
+            static_folder='all/static/img', template_folder='all/templates')
 dotenv.load_dotenv()
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.register_blueprint(blueprint)
@@ -29,19 +31,22 @@ app.register_blueprint(blueprint)
 login_manager = LoginManager()
 login_manager.init_app(app)
 api = Api(app)
-api.add_resource(HomeworkResource, '/api/116/<int:grade>/<subject>')
-api.add_resource(HomeworkListResource, '/api/116/<int:grade>')
-api.add_resource(UserResource, '/api/116/user/<user_tg>')
-api.add_resource(UserListResource, '/api/116/users')
+api.add_resource(HomeworkResource, '/api/116/<int:grade>/<subject>/<api_key>')
+api.add_resource(HomeworkListResource, '/api/116/<int:grade>/<api_key>')
+api.add_resource(UserResource, '/api/116/user/<user_tg>/<api_key>')
+api.add_resource(UserListResource, '/api/116/users/<api_key>')
+
 
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.get(User, user_id)
 
+
 @app.route('/content/<path:filepath>')
 def content(filepath):
     return send_from_directory('all/dynamic/img/actual', filepath)
+
 
 @app.route('/116')
 def start_page():
@@ -54,6 +59,8 @@ def start_page():
 
 @app.route('/116/register', methods=['GET', 'POST'])
 def simple_reg():
+    if current_user:
+        logout_user()
     form = SimpleRegisterForm()
     if form.validate_on_submit():
         user_grade = int(form.grade_numb.data + form.grade_let.data)
@@ -65,10 +72,13 @@ def simple_reg():
 
 
 @app.route('/116/<grade>')
-def grade_page(grade:int):
+def grade_page(grade: int):
     grade = int(grade)
     try:
-        user_grade = int(request.cookies.get('grade'))
+        if request.cookies.get('grade'):
+            user_grade = int(request.cookies.get('grade'))
+        else:
+            return redirect('/116/register')
         if grade == user_grade:
             return render_template('homework.html', hw=get_all_homework(grade, group=int(request.cookies.get("group", 0))))
         else:
@@ -78,17 +88,19 @@ def grade_page(grade:int):
 
 
 @app.route('/116/<grade>/<sub>')
-def homework_page(grade:int, sub: str):
+def homework_page(grade: int, sub: str):
     try:
         return render_template('lon_hw.html', hw=get_homework(grade, sub))
     except RecordNotFoundError:
         return abort(404)
-    
+
 
 @app.route('/116/login', methods=['GET', 'POST'])
 def admin_login():
     form = AdminLoginForm()
     if form.validate_on_submit():
+        if current_user:
+            logout_user()
         try:
             user = get_user(form.tg.data, form.password.data, to_dict=False)
             login_user(user, remember=form.remember_me.data)
@@ -103,22 +115,25 @@ def admin_login():
         except RecordNotFoundError:
             return abort(404)
     return render_template('simple_form.html', form=form)
-        
+
 
 @app.route('/116/new', methods=['GET', 'POST'])
 @login_required
 def new_homework():
     form = HomeworkForm()
-    form.subject.choices = get_subs(int(request.cookies.get('grade')), int(request.cookies.get('group')), return_name=True)
+    form.subject.choices = get_subs(int(request.cookies.get('grade')), int(
+        request.cookies.get('group')), return_name=True)
     if form.validate_on_submit():
         image = []
         print(form.images.data)
         for file in form.images.data:
             if file:
                 file_name = secure_filename(uuid4().hex + '.png')
-                file.save(os.path.join('all', 'dynamic', 'img', 'actual', file_name))
+                file.save(os.path.join('all', 'dynamic',
+                          'img', 'actual', file_name))
                 image.append(file_name)
-        add_homework(current_user.grade_id, form.subject.data, current_user.tg, form.text.data, ';'.join(image), find_by='name')
+        add_homework(current_user.grade_id, form.subject.data,
+                     current_user.tg, form.text.data, ';'.join(image), find_by='name')
         return redirect(f'/116/{current_user.grade_id}')
     return render_template('simple_form.html', form=form)
 
