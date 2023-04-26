@@ -1,6 +1,9 @@
 *.env
+settings.json
 **/__pycache__
 **/experiments
 **/dynamic
 **/def_data
 *.db
+**/.vscode
+**/.venv
