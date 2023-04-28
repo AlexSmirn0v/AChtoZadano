@@ -1,4 +1,4 @@
-from flask_restful import reqparse, abort, Api, Resource
+from flask_restful import reqparse, abort, Resource
 from flask import jsonify
 import dotenv
 from os import getenv
@@ -64,9 +64,7 @@ class HomeworkResource(Resource):
 
 class HomeworkListResource(Resource):
     def get(self, grade: int, api_key):
-        print(getenv("API_KEY"))
         if api_key == getenv("API_KEY"):
-
             try:
                 return jsonify(get_all_homework(grade))
             except RecordNotFoundError:

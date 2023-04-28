@@ -5,11 +5,11 @@ from sys import executable
 from uuid import uuid4
 
 import dotenv
-from flask import (Flask, Response, abort, jsonify, make_response, redirect,
-                   render_template, request, send_from_directory, url_for)
+from flask import (Flask, abort, make_response, redirect,
+                   render_template, request, send_from_directory)
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
-from flask_restful import Api, Resource, abort, reqparse
+from flask_restful import Api, abort
 from werkzeug.utils import secure_filename
 
 from all.alice import blueprint

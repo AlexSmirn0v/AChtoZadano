@@ -18,34 +18,35 @@ with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db_modules',
     prod_team = a[0]
 
 def send_email(subject, text, recipients=prod_team, attachments=None):
-    login = os.getenv('YAN_LOGIN')
-    password = os.getenv('YAN_PASSWORD')
-    host = 'smtp.yandex.com'
-    port = 465
-    if type(recipients) == str:
-        recipients = [recipients]
-    for email in recipients:
-        msg = MIMEMultipart()
-        msg['From'] = login
-        msg['To'] = email
-        msg['Subject'] = subject
-        body = text
-        msg.attach(MIMEText(body, 'plain'))
+    if not os.getenv('DEBUG'):
+        login = os.getenv('YAN_LOGIN')
+        password = os.getenv('YAN_PASSWORD')
+        host = 'smtp.yandex.com'
+        port = 465
+        if type(recipients) == str:
+            recipients = [recipients]
+        for email in recipients:
+            msg = MIMEMultipart()
+            msg['From'] = login
+            msg['To'] = email
+            msg['Subject'] = subject
+            body = text
+            msg.attach(MIMEText(body, 'plain'))
 
-        if attachments:
-            process_attachments(msg, attachments)
+            if attachments:
+                process_attachments(msg, attachments)
 
-        if login.endswith('gmail.com'):
-            server = smtp.SMTP(host, port)
-            server.starttls()
-        elif login.endswith('yandex.com'):
-            server = smtp.SMTP_SSL(host, port)
-        else:
-            print(login)
+            if login.endswith('gmail.com'):
+                server = smtp.SMTP(host, port)
+                server.starttls()
+            elif login.endswith('yandex.com'):
+                server = smtp.SMTP_SSL(host, port)
+            else:
+                print(login)
 
-        server.login(login, password)
-        server.send_message(msg)
-        server.quit()
+            server.login(login, password)
+            server.send_message(msg)
+            server.quit()
 
 def process_attachments(msg, attachments):
     for f in attachments:

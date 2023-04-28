@@ -18,6 +18,7 @@ subs = subjects_tokens()
 photo_dump = 'https://7eac-185-97-201-209.ngrok-free.app/' + 'content/'
 save_path = os.path.join(os.path.dirname(__file__), 'dynamic', 'img', 'actual') + '/'
 
+
 def generate_verification():
     code = ''.join([str(random.randint(0, 9)) for _ in range(4)])
     print(code)
@@ -200,11 +201,12 @@ async def new_homework(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = 'Ты не админ, поэтому не можешь добавлять домашние задания'
         await update.message.reply_text(reply)
         return ConversationHandler.END
-    
+
 
 async def subject(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message.text.lower()
     group = int(context.user_data['group'])
+    token = str()
     for sub_key in subs.keys():
         if sub_key in message:
             token = subs[sub_key][group - 1]
@@ -215,8 +217,10 @@ async def subject(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(reply)
         return "analyze_homework"
     else:
+        reply = 'Я не знаю такого предмета'
+        await update.message.reply_text(reply)
         return ConversationHandler.END
-    
+
 
 async def analyze_homework(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text or update.message.caption
@@ -228,7 +232,8 @@ async def analyze_homework(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file_name = secure_filename(uuid4().hex + '.png')
         await ready_file.download_to_drive(save_path + file_name)
         context.user_data['images'] = file_name
-        context.job_queue.run_once(back_to_normal, when=3, user_id=update.message.from_user.id, data=update.message.from_user.username, chat_id=update.message.chat_id)
+        context.job_queue.run_once(back_to_normal, when=3, user_id=update.message.from_user.id,
+                                   data=update.message.from_user.username, chat_id=update.message.chat_id)
         return "media_cycle"
     return ConversationHandler.END
 
@@ -255,14 +260,16 @@ async def media_cycle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ready_file = await update.message.photo[-1].get_file()
         file_name = secure_filename(uuid4().hex + '.png')
         await ready_file.download_to_drive(save_path + file_name)
-        context.user_data['images'] = context.user_data['images'] + ';' + file_name
+        context.user_data['images'] = context.user_data['images'] + \
+            ';' + file_name
         return "media_cycle"
 
 
 def main():
     application = Application.builder().token(os.getenv('TG_TOKEN')).build()
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start), CommandHandler("reset", reset)],
+        entry_points=[CommandHandler(
+            'start', start), CommandHandler("reset", reset)],
 
         states={
             "restart": [CallbackQueryHandler(start)],
