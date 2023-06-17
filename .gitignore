@@ -1,4 +1,5 @@
 *.env
+**/frontend
 settings.json
 Dockerfile
 **/__pycache__
