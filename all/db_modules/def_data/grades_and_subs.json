@@ -1,0 +1,190 @@
+{
+    "3А": [
+        "rus",
+        "lit",
+        "okr"
+    ],
+    "3Б": [
+        "rus",
+        "lit",
+        "okr"
+    ],
+    "3В": [
+        "rus",
+        "lit",
+        "okr"
+    ],
+    "4А": [
+        "rus",
+        "lit",
+        "math",
+        "okr",
+        "izo",
+        "tech",
+        "ork",
+        "mus",
+        "eng1",
+        "eng2"
+    ],
+    "4Б": [
+        "rus",
+        "lit",
+        "math",
+        "okr",
+        "izo",
+        "tech",
+        "ork",
+        "mus",
+        "eng1",
+        "eng2"
+    ],
+    "5А": [
+        "rus",
+        "lit",
+        "math",
+        "eng1",
+        "eng2"
+    ],
+    "5Б": [
+        "rus",
+        "lit",
+        "math",
+        "eng1",
+        "eng2"
+    ],
+    "5В": [
+        "rus",
+        "lit",
+        "math",
+        "eng1",
+        "eng2"
+    ],
+    "5Г": [
+        "rus",
+        "lit",
+        "math",
+        "eng1",
+        "eng2"
+    ],
+    "6А": [
+        "rus",
+        "lit",
+        "math",
+        "eng1",
+        "eng2"
+    ],
+    "6Б": [
+        "rus",
+        "lit",
+        "math",
+        "eng1",
+        "eng2"
+    ],
+    "6В": [
+        "rus",
+        "lit",
+        "math",
+        "eng1",
+        "eng2"
+    ],
+    "7А": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "7Б": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "7В": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "8А": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "8Б": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "8В": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "9А": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "9Б": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "9В": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2",
+        "geog",
+        "hist",
+        "soc",
+        "bio",
+        "alg",
+        "geom",
+        "phys",
+        "chem",
+        "ikt1",
+        "ikt2"
+    ],
+    "9Г": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "10А": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "10Б": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "11А": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "11Б": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ],
+    "11В": [
+        "rus",
+        "lit",
+        "eng1",
+        "eng2"
+    ]
+}
