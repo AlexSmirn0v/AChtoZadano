@@ -61,7 +61,7 @@ path = os.path.join(all_dir, "db_modules", "db", "116.db")
 db_session.global_init(path)
 alice = 0
 
-if not os.getenv("DEBUG"):
+if not int(os.getenv("DEBUG")):
     the_logger = logging.getLogger()
     the_logger.setLevel(logging.INFO)
 
@@ -223,7 +223,7 @@ def add_homework(grade_id: int, sub, author_tg: str, text: str = None, img_links
         db_sess.commit()
         t = Thread(target=add_values, args=['homework'], daemon=False)
         t.start()
-        if not os.getenv('DEBUG'):
+        if not int(os.getenv('DEBUG')):
             the_logger.info(
                 f'Новое дз по предмету {hw.sub.name} в {hw.grade.name()} опубликовал {hw.author_tg}')
         db_sess.close()
@@ -258,7 +258,7 @@ def add_user(user_tg: str, grade_name: str, group: int, is_admin=False, name=Non
             user.set_password(password)
     db_sess.add(user)
     db_sess.commit()
-    if not os.getenv('DEBUG'):
+    if not int(os.getenv('DEBUG')):
         if is_admin:
             the_logger.info(
                 f'Новый админ {user.name} {user.surname}({user.tg}) в {user.grade.name()} зарегистрировался')

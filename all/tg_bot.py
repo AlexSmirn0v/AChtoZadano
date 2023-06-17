@@ -15,7 +15,7 @@ else:
 
 dotenv.load_dotenv()
 subs = subjects_tokens()
-photo_dump = 'https://7eac-185-97-201-209.ngrok-free.app/' + 'content/'
+photo_dump = os.getenv("REACT_APP_URL") + '/content/'
 save_path = os.path.join(os.path.dirname(__file__), 'dynamic', 'img', 'actual') + '/'
 
 
@@ -69,6 +69,7 @@ async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await start(update, context)
         return "grade"
     else:
+        await update.message.reply_text('Хорошо. Если что, я всегда на связи', reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
 
 
@@ -191,6 +192,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def new_homework(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_dict = get_user('@' + update.message.from_user.username)
+    print(user_dict)
     context.user_data['group'] = user_dict['group']
     context.user_data['grade'] = user_dict['grade']['id']
     if user_dict['is_admin']:
@@ -225,7 +227,6 @@ async def subject(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def analyze_homework(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text or update.message.caption
     context.user_data['text'] = text
-    bot = update.get_bot()
     if update.message.photo:
         context.user_data['media_group'] = update.message.media_group_id
         ready_file = await update.message.photo[-1].get_file()
@@ -235,6 +236,14 @@ async def analyze_homework(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.job_queue.run_once(back_to_normal, when=3, user_id=update.message.from_user.id,
                                    data=update.message.from_user.username, chat_id=update.message.chat_id)
         return "media_cycle"
+    else:
+        add_homework(
+            context.user_data['grade'],
+            context.user_data['sub_token'],
+            update.effective_user.username,
+            text
+        )
+        await update.message.reply_text('Задание успешно добавлено')
     return ConversationHandler.END
 
 

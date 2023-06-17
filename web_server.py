@@ -47,7 +47,7 @@ def load_user(user_id):
 def content(filepath):
     return send_from_directory('all/dynamic/img/actual', filepath)
 
-
+@app.route('/')
 @app.route('/116')
 def start_page():
     user_grade = int(request.cookies.get("grade", 0))

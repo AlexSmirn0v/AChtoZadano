@@ -12,7 +12,7 @@ def subjects_tokens():
                 else:
                     sub_token_1 = sub_token
                     sub_token_2 = sub_token
-                sub_name = sub_name.split(' ')[0] 
+                sub_name = sub_name.split(' ')[0].rstrip(',')
                 subs[sub_name.lower()] = [sub_token_1, sub_token_2]
                 subs[sub_name_datv.lower()] = [sub_token_1, sub_token_2]
     return subs

@@ -30,7 +30,7 @@ class AdminLoginForm(FlaskForm):
         return True
 
 class HomeworkForm(FlaskForm):
-    subject = SelectField(validators=[DataRequired()], coerce=str)
+    subject = SelectField("Предмет", validators=[DataRequired()], coerce=str)
     text = TextAreaField('Домашнее задание')
     images = MultipleFileField('Загрузите фотографии')
     submit = SubmitField('Отправить')

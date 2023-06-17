@@ -34,7 +34,7 @@ class Grade(SqlAlchemyBase, SerializerMixin):
         for elem in ['''"''', " ", "'", '.']:
             name = name.replace(elem, "")
         try:
-            self.id = int(name[0]) * 10 + RETRANSFORMER[name[1].upper()]
+            self.id = int(name[:-1]) * 10 + RETRANSFORMER[name[-1].upper()]
             return True
         except KeyError:
             return False

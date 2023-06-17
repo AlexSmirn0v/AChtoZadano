@@ -1,5 +1,6 @@
 *.env
 settings.json
+Dockerfile
 **/__pycache__
 **/experiments
 **/dynamic

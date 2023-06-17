@@ -26,7 +26,7 @@ user_parser.add_argument('password', required=False, type=str)
 
 class HomeworkResource(Resource):
     def get(self, grade: int, subject, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             try:
                 res = jsonify(get_homework(grade, subject))
                 return res
@@ -36,7 +36,7 @@ class HomeworkResource(Resource):
             abort(403, message="Wrong api-key")
 
     def delete(self, grade: int, subject, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             try:
                 delete_homework(grade, subject)
                 return jsonify({'success': 'OK'})
@@ -46,7 +46,7 @@ class HomeworkResource(Resource):
             abort(403, message="Wrong api-key")
 
     def patch(self, grade: int, subject, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             args = parser.parse_args()
             try:
                 add_homework(
@@ -64,7 +64,7 @@ class HomeworkResource(Resource):
 
 class HomeworkListResource(Resource):
     def get(self, grade: int, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             try:
                 return jsonify(get_all_homework(grade))
             except RecordNotFoundError:
@@ -75,7 +75,7 @@ class HomeworkListResource(Resource):
 
 class UserResource(Resource):
     def get(self, user_tg, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             user_tg = '@' + user_tg
             try:
                 return jsonify(get_user(user_tg))
@@ -85,7 +85,7 @@ class UserResource(Resource):
             abort(403, message="Wrong api-key")
 
     def delete(self, user_tg, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             user_tg = '@' + user_tg
             try:
                 delete_user(user_tg)
@@ -98,13 +98,13 @@ class UserResource(Resource):
 
 class UserListResource(Resource):
     def get(self, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             return jsonify(get_all_users())
         else:
             abort(403, message="Wrong api-key")
 
     def post(self, api_key):
-        if api_key == getenv("API_KEY"):
+        if api_key == getenv("REACT_APP_API_KEY"):
             args = user_parser.parse_args()
             try:
                 add_user(args['user_tg'], args['grade_name'], args['group'],

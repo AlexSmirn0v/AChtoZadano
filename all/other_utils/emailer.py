@@ -18,7 +18,7 @@ with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db_modules',
     prod_team = a[0]
 
 def send_email(subject, text, recipients=prod_team, attachments=None):
-    if not os.getenv('DEBUG'):
+    if not int(os.getenv("DEBUG")):
         login = os.getenv('YAN_LOGIN')
         password = os.getenv('YAN_PASSWORD')
         host = 'smtp.yandex.com'
