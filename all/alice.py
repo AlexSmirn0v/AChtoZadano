@@ -14,6 +14,24 @@ blueprint = Blueprint(
 subs = subjects_tokens()
 
 
+def homework_to_string(grade:int, token:str) -> str:
+    try:
+        homework:dict = get_homework(grade, token)
+        if not homework.get('img_links') and (not homework.get('text') or 'не задано' in homework['text'].lower()):
+            reply = 'Ничего не задано'
+        elif homework.get('text'):
+            reply = f"Задано {homework['text']}"
+            if len(reply) > 5000:
+                end_phrase = " и так далее"
+                reply = reply[:4999-len(end_phrase)] + end_phrase
+        elif homework.get('img_links'):
+            reply = 'Домашнее задание содержит картинки. Чтобы их посмотреть, воспользуйтесь сайтом или ботом "А что задано?"'
+    except RecordNotFoundError:
+        reply = "Видимо, такого предмета в вашем классе нет"
+
+    return reply
+
+
 def work(req, resp, sess_state):
     grade = (req.deep_get(['state', 'user', 'grade'], 0)
              or req.deep_get(['state', 'user', 'grade'], 0))
@@ -25,15 +43,20 @@ def work(req, resp, sess_state):
     if sub_name:
         token = subs[sub_name][group - 1]
         print(grade, token)
-        try:
-            homework = get_homework(grade, token)
-            reply = f"Задано {homework['text']}"
-        except RecordNotFoundError:
-            reply = "Видимо, такого предмета в вашем классе нет"
+        reply = homework_to_string(grade, token)
     else:
-        reply = f"Повтори, пожалуйста, я тебя не поняла"
+        message = req.deep_get(["request", "command"])
+        token = str()
+        for sub_key in subs.keys():
+            if sub_key in message:
+                token = subs[sub_key][group - 1]
+                break
+        if token:
+            reply = homework_to_string(grade, token)
+        else:
+            reply = f"Повтори, пожалуйста, я тебя не поняла"
 
-    return reply, sess_state
+    return reply, {'step': 'work'}
 
 
 def grade(req, resp, sess_state):
@@ -93,7 +116,7 @@ def verify_group(req, resp, sess_state):
         user_id = req['session']['user_id']
         try:
             add_values('alice')
-            add_user(user_id, grade, group)
+            add_user(user_id, grade, group, from_alice=True)
 
             resp['user_state_update'] = {
                 "grade": req.deep_get(['state', 'session', 'grade_id']),
@@ -158,16 +181,19 @@ def alice():
     return jsonify(resp)
 
 
-def handle_dialog(req, resp):
+def handle_dialog(req: DeepDict, resp: DeepDict):
     grade = (req.deep_get(['state', 'user', 'grade'], 0)
              or req.deep_get(['state', 'user', 'grade'], 0))
     step = req.deep_get(['state', 'session', 'step'])
     if req.deep_get(['state', 'session']):
-        sess_state = req.deep_get(['state', 'session'])
+        sess_state = dict(req.deep_get(['state', 'session']))
     else:
         sess_state = dict()
 
-    if (req.deep_get(['session', 'new']) and not grade) or req.deep_get(['request', 'nlu', 'intents', 'change_settings']):
+    if req.deep_get(['request', 'nlu', 'intents', 'help']):
+        resp["response"]["text"] = '''Я могу рассказать тебе твоё домашнее задание. Для этого спроси меня в свободной форме, обязательно упомянув название предмета. К примеру, "А есть ли дз по английскому?"'''
+        resp['session_state'] = sess_state
+    elif (req.deep_get(['session', 'new']) and not grade) or req.deep_get(['request', 'nlu', 'intents', 'change_settings']):
         try:
             user_id = req['session']['user_id']
             delete_user(user_id)
@@ -175,7 +201,7 @@ def handle_dialog(req, resp):
             pass
         resp['user_state_update'] = {"grade": None, "group": None}
         resp['application_state'] = {"grade": None, "group": None}
-        resp["response"]["text"] = '''Привет! Чтобы начать работу, скажи, в каком ты классе? К примеру: "Я учусь в 10В"'''
+        resp["response"]["text"] = '''Привет! Я - бот "А что задано?" и, поверь мне, я хорошо знаю ответ на этот вопрос! Я всегда могу рассказать тебе твое домашнее задание, если ты, конечно, учишься в 116 гимназии. Чтобы начать работу, скажи, в каком ты классе? К примеру: "Я учусь в 10Б"'''
         sess_state['step'] = 'grade'
         resp['session_state'] = sess_state
     elif req.deep_get(['session', 'new']) and req.deep_get(['request', 'nlu', 'intents', 'subject', 'slots', 'subject', 'value']):

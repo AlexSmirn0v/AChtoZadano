@@ -19,6 +19,6 @@ class Subject(SqlAlchemyBase, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, 
                            autoincrement=True, index=True)
     name = sqlalchemy.Column(sqlalchemy.String, unique=True)
-    token = sqlalchemy.Column(sqlalchemy.String, index=True)
+    token = sqlalchemy.Column(sqlalchemy.String(5), index=True)
     group = sqlalchemy.Column(sqlalchemy.Integer)
     #grades = orm.relationship("Grade", back_populates="subjects")

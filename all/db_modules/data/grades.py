@@ -24,6 +24,7 @@ class Grade(SqlAlchemyBase, SerializerMixin):
                             secondary="grades_to_subjects",
                             backref="grades",
                             lazy='subquery')
+    eng_teachers = sqlalchemy.Column(sqlalchemy.String(150))
     
     def name(self) -> None:
         self.namer = f"{str(self.id // 10)}{TRANSFORMER[self.id % 10]}"

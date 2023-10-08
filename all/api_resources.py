@@ -2,12 +2,14 @@ from flask_restful import reqparse, abort, Resource
 from flask import jsonify
 import dotenv
 from os import getenv
+
 if __name__ == '__main__':
     from db_modules.db_utils import *
 else:
     from .db_modules.db_utils import *
 
 dotenv.load_dotenv()
+
 parser = reqparse.RequestParser()
 parser.add_argument('author_tg', required=True, type=str)
 parser.add_argument('text', required=True, type=str)
@@ -66,7 +68,7 @@ class HomeworkListResource(Resource):
     def get(self, grade: int, api_key):
         if api_key == getenv("REACT_APP_API_KEY"):
             try:
-                return jsonify(get_all_homework(grade))
+                return jsonify(get_homework_by_grade(grade))
             except RecordNotFoundError:
                 abort(404, message="The requested grade wasn't found")
         else:

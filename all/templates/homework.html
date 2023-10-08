@@ -1,10 +1,36 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Домашние задания {{ hw[0]["grade"]["name"] }} класса</h1>
-{% if current_user.is_authenticated %}
-    <a href="/116/new" class="btn btn-secondary">Добавить дз</a>
-{% endif %}
+{% for info in hw[0] %}
+  <div class="alert alert-primary alert-dismissible fade show" role="alert">
+    <a href={{ url_for(request.endpoint, **request.view_args) + "/info"}} style="text-decoration: none;color: rgb(27, 27, 165);">
+    {{ info['text'] }}
+    <br>
+    <strong>{{ info['creat_time'] }}</strong>
+    </a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
+<div style="width: 100%;display: flex;justify-content: space-between;">
+  <h1 style="color: #272727;">Домашние задания {{ hw[0][0]["grade"]["name"] }} класса</h1>
+<div class="dropdown" style="height: min-content;align-self: center;">
+  <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="dropdownMenuButton" aria-expanded="false" style="background-color: #272727; border-color: #272727;">
+    {% if index == 7 %}
+      Всё
+    {% else %}
+      {{week_list[index][1]}}
+    {% endif %}
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+    {% for i, name in week_list %}
+      <li><a class="dropdown-item" href={{ "/{}/weekday/{}".format(grade, i) }}>{{name}}</a></li>
+    {% endfor %}
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href={{ '/{}'.format(grade|string)}}>Всё</a></li>
+  </ul>
+</div>
+</div>
+
 <div class="accordion accordion-flush">
     {% for homework in hw %}
     {% if homework is mapping %}
@@ -16,17 +42,24 @@
       </h2>
       <div id={{ homework['sub']['token'] }} class="accordion-collapse collapse" data-bs-parent="#accordionExample">
         <div class="accordion-body">
-          {{ homework['text'] }}
-          <br>
-          {% if homework['img_links'] %}
-          {% for img_link in homework['img_links'] %}
-            <img src="{{ '/content/' + img_link }}" class="img-fluid">
+          {% if index == 7 or homework['is_available'] %}
+            {% if homework['text'] %}
+              <p style="margin-bottom: 1em;">{{ homework['text'] }}</p>
+            {% endif %}
             <br>
-            <br>
-          {% endfor %}
+            {% if homework['img_links'] %}
+            <div>
+            {% for img_link in homework['img_links'] %}
+              <img src="{{ '/content/' + img_link }}" class="img-fluid" style="margin-bottom: 1.5em;">
+            {% endfor %}
+            </div>
+            {% endif %}
+            <p style="margin-top: 1em;">
+            Опубликовал(а) {{ homework['author']['name'] }} {{ homework['author']['surname'] }} {{ homework['creat_time'] }}
+            </p>
+          {% else %}
+            <p style="margin-bottom: 1em; color: grey;"> Домашнее задание пока недоступно </p>
           {% endif %}
-          <br>
-          Опубликовал {{ homework['author_tg'] }} в {{ homework['creat_time'] }}
         </div>
       </div>
     </div>

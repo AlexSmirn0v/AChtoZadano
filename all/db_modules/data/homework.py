@@ -11,12 +11,11 @@ class Homework(SqlAlchemyBase, SerializerMixin):
 
     creat_time = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now, primary_key=True)
     author = orm.relationship('User')
-    author_tg = sqlalchemy.Column(sqlalchemy.String, 
-                                sqlalchemy.ForeignKey("users.tg"))
+    author_id = sqlalchemy.Column(sqlalchemy.ForeignKey("users.id"))
     grade = orm.relationship('Grade')   
     grade_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("grades.id"))
     sub = orm.relationship('Subject')
-    sub_token = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey("subjects.token"))
+    sub_token = sqlalchemy.Column(sqlalchemy.String(5), sqlalchemy.ForeignKey("subjects.token"))
     text = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     img_links = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     alt_text = sqlalchemy.Column(sqlalchemy.String, nullable=True)

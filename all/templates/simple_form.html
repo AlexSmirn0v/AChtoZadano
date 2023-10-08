@@ -1,13 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
+    {% if error %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            {{ error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
     <form action="" method="post" enctype="multipart/form-data" novalidate>
         <div>
             {{ form.csrf_token }}
         </div>
         {% for field in form if field.name != 'csrf_token' %}
             <div>
-                {{ field.label() }}
+                {% if field.type != 'SubmitField' %}
+                    {{ field.label() }}
+                {% endif %}
                 {{ field() }}
                 {% for error in field.errors %}
                     <div class="error">{{ error }}</div>

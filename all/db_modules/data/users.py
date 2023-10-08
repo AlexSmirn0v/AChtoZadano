@@ -1,4 +1,3 @@
-import datetime
 import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
@@ -11,10 +10,12 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users'
     __table_args__ = {'extend_existing': True}
     
-    tg = sqlalchemy.Column(sqlalchemy.String, nullable=False, index=True, primary_key=True)
+    id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, primary_key=True)
     grade = orm.relationship('Grade')
     grade_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("grades.id"))
     group = sqlalchemy.Column(sqlalchemy.Integer)
+    from_tg = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
+    is_chatmode = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     is_admin = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True) 
     surname = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -22,7 +23,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     def get_id(self):
-        return self.tg
+        return self.id
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)

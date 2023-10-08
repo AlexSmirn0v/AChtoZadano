@@ -18,35 +18,36 @@ with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db_modules',
     prod_team = a[0]
 
 def send_email(subject, text, recipients=prod_team, attachments=None):
-    if not int(os.getenv("DEBUG")):
-        login = os.getenv('YAN_LOGIN')
-        password = os.getenv('YAN_PASSWORD')
-        host = 'smtp.yandex.com'
-        port = 465
-        if type(recipients) == str:
-            recipients = [recipients]
-        for email in recipients:
-            msg = MIMEMultipart()
-            msg['From'] = login
-            msg['To'] = email
-            msg['Subject'] = subject
-            body = text
-            msg.attach(MIMEText(body, 'plain'))
+    login = os.getenv('YAN_LOGIN')
+    password = os.getenv('YAN_PASSWORD')
+    host = 'smtp.yandex.com'
+    port = 465
+    if login.endswith('gmail.com'):
+        server = smtp.SMTP(host, port)
+        server.starttls()
+    elif login.endswith('yandex.com'):
+        server = smtp.SMTP_SSL(host, port)
+    else:
+        print(login)
+    
+    if type(recipients) == str:
+        recipients = [recipients]
 
-            if attachments:
-                process_attachments(msg, attachments)
+    server.login(login, password)
+    for email in recipients:
+        msg = MIMEMultipart()
+        msg['From'] = login
+        msg['To'] = email
+        msg['Subject'] = subject
+        body = text
+        msg.attach(MIMEText(body, 'plain'))
 
-            if login.endswith('gmail.com'):
-                server = smtp.SMTP(host, port)
-                server.starttls()
-            elif login.endswith('yandex.com'):
-                server = smtp.SMTP_SSL(host, port)
-            else:
-                print(login)
+        if attachments:
+            process_attachments(msg, attachments)
 
-            server.login(login, password)
-            server.send_message(msg)
-            server.quit()
+        server.send_message(msg)
+        
+    server.quit()
 
 def process_attachments(msg, attachments):
     for f in attachments:
@@ -80,4 +81,4 @@ def attach_file(msg, f):
 
 
 if __name__ == '__main__':
-    send_email('Проверка', "Почему бы и нет?")
+    send_email('Проверка', "Почему бы и нет?", ['mail@alexsmirnov.ru', 'alex.anton.smirnov@gmail.com', 'alex.smirnov010407@gmail.com'], '')
